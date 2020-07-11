@@ -104,6 +104,7 @@ $.extend(Controller, {
           this.gridSize = [w,h];
     },
     onleavenone: function() {
+        Controller.getGridSize();
         var numCols = this.gridSize[0],
             numRows = this.gridSize[1];
 
