@@ -97,6 +97,12 @@ $.extend(Controller, {
     /**
      * Asynchronous transition from `none` state to `ready` state.
      */
+    getGridSize: function(){
+        var w = Math.floor($(window).width()/View.nodeSize) +1,
+              h = Math.floor($(window).height()/View.nodeSize) + 1;
+          console.log(w, h);
+          this.gridSize = [w,h];
+    },
     onleavenone: function() {
         var numCols = this.gridSize[0],
             numRows = this.gridSize[1];
