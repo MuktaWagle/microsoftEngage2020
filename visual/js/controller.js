@@ -136,21 +136,27 @@ $.extend(Controller, {
         // => erasingWall
     },
     onsearch: function(event, from, to) {
-        var grid,
-            timeStart, timeEnd,
-            finder = Panel.getFinder();
-
+         timeStart, timeEnd,
         timeStart = window.performance ? performance.now() : Date.now();
-        grid = this.grid.clone();
-        this.path = finder.findPath(
-            this.startX, this.startY, this.endX, this.endY, grid
-        );
+        var gr = this.makeGraph(endNodes);
+        var v = new Array(gr.length);
+        for (var k = 0; k < v.length; k++) {
+            v[k]=false;   
+        }
+        v[0]=true;
+        var ans = 10000;
+        var pathArray = new Array;
+        pathArray.push(endNodes[0]);
+        this.getPath(gr,v,0,n,1,0,ans,pathArray);
+        this.path = pathArray;
+
         this.operationCount = this.operations.length;
         timeEnd = window.performance ? performance.now() : Date.now();
         this.timeSpent = (timeEnd - timeStart).toFixed(4);
 
         this.loop();
         // => searching
+
     },
     onrestart: function() {
         // When clearing the colorized nodes, there may be
@@ -497,6 +503,55 @@ $.extend(Controller, {
         this.endX = gridX;
         this.endY = gridY;
         View.setEndPos(gridX, gridY);
+    },
+    makeGraph: function(endNodes){
+        var n = endNodes.length;
+        var graph = new Array(n); 
+        for (var i = 0; i < graph.length; i++) { 
+            graph[i] = new Array(n); 
+        } 
+
+        for(var i = 0; i < graph.length; i++){
+            for(var j = i; j < graph.length; j++){
+                var Grid,finder = Panel.getFinder();
+                Grid = this.grid.clone();
+
+                var dist = finder.findPath(
+                  endNodes[i].X, endNodes[i].Y, endNodes[j].X, endNodes[j].Y, Grid
+                );
+                var len = PF.Util.pathLength(dist);
+                graph[j][i] = new Array(2);
+                graph[j][i][0]=len;
+                graph[j][i][1]=dist.reverse();
+                graph[i][j] = new Array(2);
+                graph[i][j][0]=len;
+                graph[i][j][1]=dist;
+            }
+        }
+
+        return graph;
+
+    },
+    getPath: function(gr,v,pos,n,count,cost,ans,patharray){
+        if (count == n) { 
+            ans = min(ans, cost); 
+            return; 
+        } 
+      
+        for (var i = 0; i < n; i++) { 
+            if (!v[i] && gr[pos][i][0]) { 
+      
+                v[i] = true; 
+                cost = cost + gr[pos][i][0];
+                gr[pos][i][1].shift();
+                patharray = patharray.concat(gr[pos][i][1]);
+                this.getPath(gr, v, i, n, count + 1, 
+                    cost, ans,patharray); 
+    
+                v[i] = false; 
+            } 
+        } 
+
     },
     setWalkableAt: function(gridX, gridY, walkable) {
         this.grid.setWalkableAt(gridX, gridY, walkable);
